@@ -4,11 +4,34 @@ import logo from './logo.svg'
 import census from "./census";
 import './App.css'
 import premierLeague from "./epl";
+import chelseaData from "./chelsea";
+import manCityData from "./mancity";
+import liverpoolData from "./liverpool";
+import manUtdData from "./manutd";
 import * as d3 from "d3";
 import { AxisLeft, AxisBottom } from "@visx/axis";
 
 function App() {
-  const [count, setCount] = useState(0);
+  const [chelsea, setChelsea] = useState(false);
+  const [manCity, setManCity] = useState(false);
+  const [liverpool, setLiverpool] = useState(false);
+  const [manUtd, setManUtd] = useState(false);
+
+  const handleChelsea = () => {
+    setChelsea(!chelsea);
+  };
+
+  const handleManCity = () => {
+    setManCity(!manCity);
+  };
+
+  const handleLiverpool = () => {
+    setLiverpool(!liverpool);
+  };
+
+  const handleManUtd = () => {
+    setManUtd(!manUtd);
+  };
 
   const circleScale = scaleLinear().domain([0, 350]).range([0, 250]);
 
@@ -28,6 +51,14 @@ function App() {
     return parseInt(player.Passes_Attempted);
   });
 
+  var minPercPass = d3.min(premierLeague, (player) => {
+    return 60;
+  });
+
+  var maxPercPass = d3.max(premierLeague, (player) => {
+    return parseInt(player.Perc_Passes_Completed);
+  });
+
 
   const premierLeagueChartHeight = 100;
   const premierLeagueChartWidth = 800;
@@ -43,8 +74,13 @@ function App() {
     .domain([minPassesAttempted, maxPassesAttempted])
     .range([premierLeagueMargin, premierLeagueChartWidth - premierLeagueMargin - premierLeagueMargin])
 
+  const premierLeaguePercPassScale = scaleLinear()
+    .domain([minPercPass, maxPercPass])
+    .range([premierLeagueMargin, premierLeagueChartWidth - premierLeagueMargin - premierLeagueMargin])
+
   const pGoalsBinGenerator = d3.bin().value((d) => parseInt(d.Goals))
   const pPassesBinGenerator = d3.bin().value((d) => parseInt(d.Passes_Attempted));
+
 
 
   const goalsBins = pGoalsBinGenerator(premierLeague);
@@ -99,14 +135,239 @@ function App() {
   const paragraph6 = "The circle for the young adult population exists (which appear in a different color for clarity, we want to avoid having the same hue) because although we want to answer a question on the super-senior population, we need to consider general population growth and understand the growth rate in other age groups as well. Of course there are going to be more people in every age group in the year 2000 compared to the year 1900. But, I want my audience to observe that the old age groups have experienced massive growth over the past century. This should inform the viewer that perhaps the standard of healthcare in the US has increased to a point where it is expected for a large chunk of the population to be able to live to this age.";
   return (
     <div className="App">
-        <p>
-          The English Premier League players dataset contains {premierLeague.length} professional soccer players.
-          Each player has statistics that have been accumulated over the course of the full 2020 - 2021 season.
-          We will analyze their goals output and passes completed statistics, two metrics that are key to team contribution.
-        </p>
-        <p>
-          Let's take a look at a barcode plot of the goals scored by each player and how they are distributed.
-        </p>
+      <p>
+        The 2020 - 2021 Premier League season features a close battle for the top 4 positions, in which the top 4 teams is guaranteed qualification
+        for the prestigious UEFA Champions League competition. Here we are analyzing the passing statistics over a full season for these top 4 teams
+        in England, and comparing them to each other.
+      </p>
+      <p> Let's look at an interactive strip plot for total passes attempted out of the top 4 teams. </p>
+      <div>
+        <label>
+          <input
+            type="checkbox"
+            checked={chelsea}
+            onChange={handleChelsea}
+          />
+          Chelsea
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={manCity}
+            onChange={handleManCity}
+          />
+          Manchester City
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={liverpool}
+            onChange={handleLiverpool}
+          />
+          Liverpool
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={manUtd}
+            onChange={handleManUtd}
+          />
+          Manchester United
+        </label>
+
+      </div>
+      {/*<div>
+        {gk.map((name, i) => {
+          return (
+            <>
+              <input
+                key={i}
+                type="checkbox"
+                id={name}
+                name={name}
+                checked={selectedGKs.indexOf(name) > -1}
+                onChange={() => {
+                  if (selectedGKs.indexOf(name) === -1) {
+                    setSelectedGKs(selectedGKs.slice(0).push(name));
+                  } else {
+                    setSelectedGKs(
+                      selectedGKs.slice(0).filter((_name) => {
+                        return _name !== name;
+                      })
+                    );
+                  }
+                }}
+              />
+              <label style={{ marginRight: 15}}>{name}</label>
+            </>
+          );
+        })}
+      </div>
+*/}
+      <svg width={premierLeagueChartWidth} height={premierLeagueChartHeight} style={{border: "none"}}>
+        {chelseaData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeaguePassesAttemptedScale(parseInt(player.Passes_Attempted))}
+              cy={premierLeagueChartHeight / 2}
+              r={9}
+              style={
+                chelsea === true
+                  ? { fill: "none", stroke: "rgba(0,255,255,.4)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+        {manCityData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeaguePassesAttemptedScale(parseInt(player.Passes_Attempted))}
+              cy={premierLeagueChartHeight / 2}
+              r={9}
+              style={
+                manCity === true
+                  ? { fill: "none", stroke: "rgba(0,0,0,.4)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+        {liverpoolData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeaguePassesAttemptedScale(parseInt(player.Passes_Attempted))}
+              cy={premierLeagueChartHeight / 2}
+              r={9}
+              style={
+                liverpool === true
+                  ? { fill: "none", stroke: "rgba(0,128,0,.4)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+        {manUtdData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeaguePassesAttemptedScale(parseInt(player.Passes_Attempted))}
+              cy={premierLeagueChartHeight / 2}
+              r={9}
+              style={
+                manUtd === true
+                  ? { fill: "none", stroke: "rgba(255,0,0,.4)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+
+        <AxisBottom
+          strokeWidth={1}
+          top={premierLeagueChartHeight - premierLeagueMargin - premierLeagueAxisTextPadding}
+          scale={premierLeaguePassesAttemptedScale}
+          numTicks={10}
+        />
+      </svg>
+
+      <p>
+        Let's look at percentage passes completed to see the accuracy and how much risk each team is willing to take when they have
+        possession of the ball.
+      </p>
+
+      <svg width={premierLeagueChartWidth} height={premierLeagueChartHeight} style={{border: "none"}}>
+        {chelseaData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeaguePercPassScale(parseFloat(player.Perc_Passes_Completed))}
+              cy={premierLeagueChartHeight / 2}
+              r={9}
+              style={
+                chelsea === true
+                  ? { fill: "none", stroke: "rgba(0,255,255,.4)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+        {manCityData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeaguePercPassScale(parseFloat(player.Perc_Passes_Completed))}
+              cy={premierLeagueChartHeight / 2}
+              r={9}
+              style={
+                manCity === true
+                  ? { fill: "none", stroke: "rgba(0,0,0,.4)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+        {liverpoolData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeaguePercPassScale(parseFloat(player.Perc_Passes_Completed))}
+              cy={premierLeagueChartHeight / 2}
+              r={9}
+              style={
+                liverpool === true
+                  ? { fill: "none", stroke: "rgba(0,128,0,.4)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+        {manUtdData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeaguePercPassScale(parseFloat(player.Perc_Passes_Completed))}
+              cy={premierLeagueChartHeight / 2}
+              r={9}
+              style={
+                manUtd === true
+                  ? { fill: "none", stroke: "rgba(255,0,0,.4)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+
+        <AxisBottom
+          strokeWidth={1}
+          top={premierLeagueChartHeight - premierLeagueMargin - premierLeagueAxisTextPadding}
+          scale={premierLeaguePercPassScale}
+          numTicks={10}
+          tickFormat={function tickFormat(v){
+            return v + "%";
+          }}
+        />
+      </svg>
+
+      <p>
+        The English Premier League players dataset contains {premierLeague.length} professional soccer players.
+        Each player has statistics that have been accumulated over the course of the full 2020 - 2021 season.
+        We will analyze their goals output and passes completed statistics, two metrics that are key to team contribution.
+      </p>
+      <p>
+        Let's take a look at a barcode plot of the goals scored by each player and how they are distributed.
+      </p>
 
       <svg width={premierLeagueChartWidth} height={premierLeagueChartHeight} style={{border: "none"}}>
         {premierLeague.map((player, i) => {
