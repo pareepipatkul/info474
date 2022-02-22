@@ -12,10 +12,10 @@ import * as d3 from "d3";
 import { AxisLeft, AxisBottom } from "@visx/axis";
 
 function App() {
-  const [chelsea, setChelsea] = useState(false);
-  const [manCity, setManCity] = useState(false);
-  const [liverpool, setLiverpool] = useState(false);
-  const [manUtd, setManUtd] = useState(false);
+  const [chelsea, setChelsea] = useState(true);
+  const [manCity, setManCity] = useState(true);
+  const [liverpool, setLiverpool] = useState(true);
+  const [manUtd, setManUtd] = useState(true);
 
   const handleChelsea = () => {
     setChelsea(!chelsea);
@@ -135,12 +135,9 @@ function App() {
   const paragraph6 = "The circle for the young adult population exists (which appear in a different color for clarity, we want to avoid having the same hue) because although we want to answer a question on the super-senior population, we need to consider general population growth and understand the growth rate in other age groups as well. Of course there are going to be more people in every age group in the year 2000 compared to the year 1900. But, I want my audience to observe that the old age groups have experienced massive growth over the past century. This should inform the viewer that perhaps the standard of healthcare in the US has increased to a point where it is expected for a large chunk of the population to be able to live to this age.";
   return (
     <div className="App">
-      <p>
-        The 2020 - 2021 Premier League season features a close battle for the top 4 positions, in which the top 4 teams is guaranteed qualification
-        for the prestigious UEFA Champions League competition. Here we are analyzing the passing statistics over a full season for these top 4 teams
-        in England, and comparing them to each other.
-      </p>
-      <p> Let's look at an interactive strip plot for total passes attempted out of the top 4 teams. </p>
+      <h1> 2020 - 2021 English Premier League Interactive Passes Attempted Plot (Top 4 Teams) </h1>
+
+
       <div>
         <label>
           <input
@@ -176,34 +173,7 @@ function App() {
         </label>
 
       </div>
-      {/*<div>
-        {gk.map((name, i) => {
-          return (
-            <>
-              <input
-                key={i}
-                type="checkbox"
-                id={name}
-                name={name}
-                checked={selectedGKs.indexOf(name) > -1}
-                onChange={() => {
-                  if (selectedGKs.indexOf(name) === -1) {
-                    setSelectedGKs(selectedGKs.slice(0).push(name));
-                  } else {
-                    setSelectedGKs(
-                      selectedGKs.slice(0).filter((_name) => {
-                        return _name !== name;
-                      })
-                    );
-                  }
-                }}
-              />
-              <label style={{ marginRight: 15}}>{name}</label>
-            </>
-          );
-        })}
-      </div>
-*/}
+
       <svg width={premierLeagueChartWidth} height={premierLeagueChartHeight} style={{border: "none"}}>
         {chelseaData.map((player, i) => {
           return (
@@ -278,10 +248,16 @@ function App() {
         />
       </svg>
 
-      <p>
-        Let's look at percentage passes completed to see the accuracy and how much risk each team is willing to take when they have
-        possession of the ball.
+      <p> Let's look at an interactive strip plot for total passes attempted out of the top 4 teams. We can see Liverpool is the team with the most positive outliers in passes attempted, but they also have the highest variability in this statistic.
+      Chelsea on the other hand, use a team system that is much more reliant on the creative capabilities of the entire team, and we can see that it is represented well in the data as each of their players' data is more clumped together.
+      We can also notice that Manchester City and Liverpool have the most creative players in the league as they both have two positive outliers in this statistic. When we dive into the data, both of Liverpool's outliers are wide attacking full backs while
+      Manchester City's outliers are central players playing close to the holding midfield area. This indicates that Liverpool are more likely to build up and create chances coming in from the wide areas of the pitch, while Manchester City are more focused on
+      buildup play from the middle of the pitch.
       </p>
+
+      <h1> 2020 - 2021 English Premier League Interactive Percentage of Passes Completed Plot (Top 4 Teams) </h1>
+
+
 
       <svg width={premierLeagueChartWidth} height={premierLeagueChartHeight} style={{border: "none"}}>
         {chelseaData.map((player, i) => {
@@ -359,12 +335,47 @@ function App() {
           }}
         />
       </svg>
+      <p>
+        Let's look at percentage of passes completed to see the accuracy and how much risk each team is willing to take when they have
+        possession of the ball. We can see why Manchester City are the champions of the league. The way they use the ball is extremely prominent to see in our
+        percentage of passes completed, with many data points clumped together around the 90-95% mark. The data matches my eye test, as they are a extremely possession
+        oriented team. In comparison, Liverpool and Chelsea have similarly looking distributions but slightly worse (as they did finish underneath Manchester City), but Manchester United certainly play a different way and it seems they aren't
+        as focused on ball possession. This is accurate as they are known to be a counter-attacking team who look to hit teams on turnovers of the ball, so it makes sense that their
+        percentage of passes completion numbers are lower.
+      </p>
+
+      <h1> Assignment 3 Write-Up </h1>
+      <p>
+        The 2020 - 2021 Premier League (European football) season features a close battle for the top 4 positions, in which the top 4 teams is guaranteed qualification
+        for the prestigious UEFA Champions League competition. To analyze a team's play, it is especially important to understand how dominant teams use possession of the ball, as they
+        are expected to have more of the ball compared to teams lower than them in the standings. When we look at passing numbers, we can attempt to understand their game plan and even compare
+        these data points to the other "Big 4" teams. Here we are analyzing the total passes attempted statistic and the percentage of passes completed statistic for each of these team's players over a
+        full season for these top 4 teams in England, and comparing these distributions to each other.
+      </p>
+      <p>
+        By using a strip plot, in which we determined was the most suitable plot type to plot these statistics, allows us to show all the players' data on a one-dimensional axis. When we compare each teams'
+        players, we also want to be able to distinguish each team from another and also see if there are any outliers (extraordinary players). Since each team represents a variable that is categorical in nature (and we are comparing each team to another), I chose distinct
+        colors for each of the teams so that it is easy for the audience to compare their passing statistics. I also had to choose colors carefully, ensuring they are distinct enough from each other if they happen
+        to overlap on the plot while picking colors that are easily visible on a white background. Also, since the plots might be cluttered with all these data points of each player, it makes the interactive feature of using a
+        checkbox extremely helpful. We can look at all the 4 teams' data at once, or have the option to display or undisplay any team at your choosing. This allows the audience to understand how the data is distributed for each team
+        at their own choosing.
+      </p>
+      <p>
+        As the only member working on this assignment, the development process was started as soon as the last assignment was submitted. I came to the conclusion that the choice of a strip plot was most effective in answering questions with this dataset.
+        I wanted to look at passing statistics for each team, so it was necessary to split up the players' data filtered by team. This process alongside brainstorming how I wanted to answer the questions was part of the data wrangling process which took about
+        2 hours. Then, I spent another two hours figuring out the React hooks and how to use checkboxes to display and undisplay each of these data points on my plots, a necessary component to help with the interactive comparison feature. Setting up the scale and
+        coding each of the teams' data points also took several hours, ensuring the circles representing each data point are displayed appropriately and matching with the distinct colors. I thought that setting up the React hooks to work with the checkboxes took the
+        most time as I needed several tries to make it work the way I wanted.
+      </p>
+
+      <h1> --------------- </h1>
 
       <p>
         The English Premier League players dataset contains {premierLeague.length} professional soccer players.
         Each player has statistics that have been accumulated over the course of the full 2020 - 2021 season.
         We will analyze their goals output and passes completed statistics, two metrics that are key to team contribution.
       </p>
+
       <p>
         Let's take a look at a barcode plot of the goals scored by each player and how they are distributed.
       </p>
