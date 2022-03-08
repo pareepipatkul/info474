@@ -16,6 +16,12 @@ function App() {
   const [manCity, setManCity] = useState(true);
   const [liverpool, setLiverpool] = useState(true);
   const [manUtd, setManUtd] = useState(true);
+  const [plot, setPlot] = useState("assists");
+
+  const handlePlot = (event) => {
+    console.log(event);
+    setPlot(event.target.value);
+  }
 
   const handleChelsea = () => {
     setChelsea(!chelsea);
@@ -59,6 +65,31 @@ function App() {
     return parseInt(player.Perc_Passes_Completed);
   });
 
+  var minAssists = d3.min(premierLeague, (player) => {
+    return parseInt(player.Assists);
+  });
+
+  var maxAssists = d3.max(premierLeague, (player) => {
+    return parseInt(player.Assists);
+  });
+
+  var minXA = d3.min(premierLeague, (player) => {
+    return parseInt(player.xA);
+  });
+
+  var maxXA = d3.max(premierLeague, (player) => {
+    return 0.6;
+  });
+
+  var minXG = d3.min(premierLeague, (player) => {
+    return parseInt(player.xG);
+  });
+
+  var maxXG = d3.max(premierLeague, (player) => {
+    return 0.7;
+  });
+
+
 
   const premierLeagueChartHeight = 100;
   const premierLeagueChartWidth = 800;
@@ -78,10 +109,33 @@ function App() {
     .domain([minPercPass, maxPercPass])
     .range([premierLeagueMargin, premierLeagueChartWidth - premierLeagueMargin - premierLeagueMargin])
 
+  const premierLeagueAssistsScale = scaleLinear()
+    .domain([minAssists, maxAssists])
+    .range([premierLeagueMargin, premierLeagueChartWidth - premierLeagueMargin - premierLeagueMargin])
+
+  const premierLeagueXAScale = scaleLinear()
+    .domain([minXA, maxXA])
+    .range([premierLeagueMargin, premierLeagueChartWidth - premierLeagueMargin - premierLeagueMargin])
+
+  const premierLeagueXGScale = scaleLinear()
+    .domain([minXG, maxXG])
+    .range([premierLeagueMargin, premierLeagueChartWidth - premierLeagueMargin - premierLeagueMargin])
+
   const pGoalsBinGenerator = d3.bin().value((d) => parseInt(d.Goals))
   const pPassesBinGenerator = d3.bin().value((d) => parseInt(d.Passes_Attempted));
 
+  // select the svg area
+  var svg = d3.select("#my_dataviz");
 
+  // Handmade legend
+  svg.append("circle").attr("cx",20).attr("cy",30).attr("r", 6).style("fill", "rgba(0,255,255)");
+  svg.append("circle").attr("cx",20).attr("cy",60).attr("r", 6).style("fill", "rgba(0,0,0)");
+  svg.append("circle").attr("cx",20).attr("cy",90).attr("r", 6).style("fill", "rgba(0,128,0)");
+  svg.append("circle").attr("cx",20).attr("cy",120).attr("r", 6).style("fill", "rgba(255,0,0)");
+  svg.append("text").attr("x", 40).attr("y", 30).text("Chelsea").style("font-size", "15px").attr("alignment-baseline","center");
+  svg.append("text").attr("x", 40).attr("y", 60).text("Manchester City").style("font-size", "15px").attr("alignment-baseline","center");
+  svg.append("text").attr("x", 40).attr("y", 90).text("Liverpool").style("font-size", "15px").attr("alignment-baseline","center");
+  svg.append("text").attr("x", 40).attr("y", 120).text("Manchester United").style("font-size", "15px").attr("alignment-baseline","center");
 
   const goalsBins = pGoalsBinGenerator(premierLeague);
   const passesAttemptedBins = pPassesBinGenerator(premierLeague);
@@ -137,9 +191,9 @@ function App() {
     <div className="App">
       <h1> 2020 - 2021 English Premier League Interactive Passes Attempted Plot (Top 4 Teams) </h1>
 
-
       <div>
-        <label>
+        <svg id="my_dataviz" height={130} width={200}></svg>
+        <label style={{"margin-right": 15}}>
           <input
             type="checkbox"
             checked={chelsea}
@@ -147,7 +201,7 @@ function App() {
           />
           Chelsea
         </label>
-        <label>
+        <label style={{"margin-right": 15}}>
           <input
             type="checkbox"
             checked={manCity}
@@ -155,7 +209,7 @@ function App() {
           />
           Manchester City
         </label>
-        <label>
+        <label style={{"margin-right": 15}}>
           <input
             type="checkbox"
             checked={liverpool}
@@ -163,7 +217,7 @@ function App() {
           />
           Liverpool
         </label>
-        <label>
+        <label style={{"margin-right": 15}}>
           <input
             type="checkbox"
             checked={manUtd}
@@ -171,7 +225,6 @@ function App() {
           />
           Manchester United
         </label>
-
       </div>
 
       <svg width={premierLeagueChartWidth} height={premierLeagueChartHeight} style={{border: "none"}}>
@@ -344,7 +397,320 @@ function App() {
         percentage of passes completion numbers are lower.
       </p>
 
-      <h1> Assignment 3 Write-Up </h1>
+      <h1> 2020 - 2021 English Premier League Assists Plot (Top 4 Teams) </h1>
+
+      <div style={{"margin": 15}}>
+        <select id="select1" onChange={handlePlot}>
+          <option value="assists">Assists</option>
+          <option value="xA">Expected Assists per Game</option>
+          <option value="goals">Goals</option>
+          <option value="xG">Expected Goals per Game</option>
+        </select>
+      </div>
+
+      <svg width={premierLeagueChartWidth} height={premierLeagueChartHeight} style={{border: "none"}}>
+        {chelseaData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeagueAssistsScale(parseInt(player.Assists))}
+              cy={premierLeagueChartHeight / 6}
+              r={7}
+              style={
+                chelsea === true
+                  ? { fill: "rgba(0,255,255)", stroke: "rgba(0,255,255)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+        {manCityData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeagueAssistsScale(parseInt(player.Assists))}
+              cy={premierLeagueChartHeight / 3}
+              r={7}
+              style={
+                manCity === true
+                  ? { fill: "rgba(0,0,0)", stroke: "rgba(0,0,0)" }
+                  : { fill: "none", stroke: "rgba(0,0,0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+        {liverpoolData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeagueAssistsScale(parseInt(player.Assists))}
+              cy={premierLeagueChartHeight / 2}
+              r={7}
+              style={
+                liverpool === true
+                  ? { fill: "rgba(0,128,0)", stroke: "rgba(0,128,0)" }
+                  : { fill: "none", stroke: "rgba(0,0,0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+        {manUtdData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeagueAssistsScale(parseInt(player.Assists))}
+              cy={premierLeagueChartHeight / 1.5}
+              r={7}
+              style={
+                manUtd === true
+                  ? { fill: "rgba(255,0,0)", stroke: "rgba(255,0,0)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+
+        <AxisBottom
+          strokeWidth={1}
+          top={premierLeagueChartHeight - premierLeagueMargin - premierLeagueAxisTextPadding}
+          scale={premierLeagueAssistsScale}
+          numTicks={10}
+        />
+      </svg>
+
+      <h1> 2020 - 2021 English Premier League Expected Assists per Game Plot (Top 4 Teams) </h1>
+
+      <svg width={premierLeagueChartWidth} height={premierLeagueChartHeight} style={{border: "none"}}>
+        {chelseaData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeagueXAScale(parseFloat(player.xA))}
+              cy={premierLeagueChartHeight / 6}
+              r={7}
+              style={
+                chelsea === true
+                  ? { fill: "rgba(0,255,255)", stroke: "rgba(0,255,255)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+        {manCityData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeagueXAScale(parseFloat(player.xA))}
+              cy={premierLeagueChartHeight / 3}
+              r={7}
+              style={
+                manCity === true
+                  ? { fill: "rgba(0,0,0)", stroke: "rgba(0,0,0)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+        {liverpoolData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeagueXAScale(parseFloat(player.xA))}
+              cy={premierLeagueChartHeight / 2}
+              r={7}
+              style={
+                liverpool === true
+                  ? { fill: "rgba(0,128,0)", stroke: "rgba(0,128,0)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+        {manUtdData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeagueXAScale(parseFloat(player.xA))}
+              cy={premierLeagueChartHeight / 1.5}
+              r={7}
+              style={
+                manUtd === true
+                  ? { fill: "rgba(255,0,0)", stroke: "rgba(255,0,0)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+
+        <AxisBottom
+          strokeWidth={1}
+          top={premierLeagueChartHeight - premierLeagueMargin - premierLeagueAxisTextPadding}
+          scale={premierLeagueXAScale}
+          numTicks={10}
+        />
+      </svg>
+
+      <h1> 2020 - 2021 English Premier League Goals Plot (Top 4 Teams) </h1>
+
+      <svg width={premierLeagueChartWidth} height={premierLeagueChartHeight} style={{border: "none"}}>
+        {chelseaData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeagueGoalsScale(parseInt(player.Goals))}
+              cy={premierLeagueChartHeight / 6}
+              r={7}
+              style={
+                chelsea === true
+                  ? { fill: "rgba(0,255,255)", stroke: "rgba(0,255,255)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+        {manCityData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeagueGoalsScale(parseInt(player.Goals))}
+              cy={premierLeagueChartHeight / 3}
+              r={7}
+              style={
+                manCity === true
+                  ? { fill: "rgba(0,0,0)", stroke: "rgba(0,0,0)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+        {liverpoolData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeagueGoalsScale(parseInt(player.Goals))}
+              cy={premierLeagueChartHeight / 2}
+              r={7}
+              style={
+                liverpool === true
+                  ? { fill: "rgba(0,128,0)", stroke: "rgba(0,128,0)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+        {manUtdData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeagueGoalsScale(parseInt(player.Goals))}
+              cy={premierLeagueChartHeight / 1.5}
+              r={7}
+              style={
+                manUtd === true
+                  ? { fill: "rgba(255,0,0)", stroke: "rgba(255,0,0)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+
+        <AxisBottom
+          strokeWidth={1}
+          top={premierLeagueChartHeight - premierLeagueMargin - premierLeagueAxisTextPadding}
+          scale={premierLeagueGoalsScale}
+          numTicks={10}
+        />
+      </svg>
+
+      <h1> 2020 - 2021 English Premier League Expected Goals per Game Plot (Top 4 Teams) </h1>
+
+      <svg width={premierLeagueChartWidth} height={premierLeagueChartHeight} style={{border: "none"}}>
+        {chelseaData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeagueXGScale(parseFloat(player.xG))}
+              cy={premierLeagueChartHeight / 6}
+              r={7}
+              style={
+                chelsea === true
+                  ? { fill: "rgba(0,255,255)", stroke: "rgba(0,255,255)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+        {manCityData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeagueXGScale(parseFloat(player.xG))}
+              cy={premierLeagueChartHeight / 3}
+              r={7}
+              style={
+                manCity === true
+                  ? { fill: "rgba(0,0,0)", stroke: "rgba(0,0,0)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+        {liverpoolData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeagueXGScale(parseFloat(player.xG))}
+              cy={premierLeagueChartHeight / 2}
+              r={7}
+              style={
+                liverpool === true
+                  ? { fill: "rgba(0,128,0)", stroke: "rgba(0,128,0)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+        {manUtdData.map((player, i) => {
+          return (
+            <circle
+              key={i}
+              cx={premierLeagueXGScale(parseFloat(player.xG))}
+              cy={premierLeagueChartHeight / 1.5}
+              r={7}
+              style={
+                manUtd === true
+                  ? { fill: "rgba(255,0,0)", stroke: "rgba(255,0,0)" }
+                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
+              }
+            ></circle>
+          );
+        }
+        )}
+
+        <AxisBottom
+          strokeWidth={1}
+          top={premierLeagueChartHeight - premierLeagueMargin - premierLeagueAxisTextPadding}
+          scale={premierLeagueXGScale}
+          numTicks={10}
+        />
+      </svg>
+
+      <h1> Final Project Write-Up </h1>
       <p>
         The 2020 - 2021 Premier League (European football) season features a close battle for the top 4 positions, in which the top 4 teams is guaranteed qualification
         for the prestigious UEFA Champions League competition. To analyze a team's play, it is especially important to understand how dominant teams use possession of the ball, as they
