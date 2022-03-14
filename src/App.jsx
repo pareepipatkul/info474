@@ -17,6 +17,7 @@ function App() {
   const [liverpool, setLiverpool] = useState(true);
   const [manUtd, setManUtd] = useState(true);
   const [plot, setPlot] = useState("assists");
+  const [highlightedPlayer, setHighlightedPlayer] = useState("Edinson Cavani");
 
   const handlePlot = (event) => {
     console.log(event);
@@ -130,8 +131,19 @@ function App() {
       width = 460 - margin.left - margin.right,
       height = 400 - margin.top - margin.bottom;
 
+
+
+
   // append the svg object to the body of the page
   var svg = d3.select("#my_dataviz")
+    .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+      .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+
+  var svg2 = d3.select("#my_dataviz")
     .append("svg")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
@@ -151,47 +163,136 @@ function App() {
   var y = d3.scaleLinear()
     .domain([0, maxXA])
     .range([ height, 0]);
+
+  // Add X axis
+  var x2 = d3.scaleLinear()
+    .domain([0, maxGoals])
+    .range([ 0, width ]);
+  svg2.append("g")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(x2));
+
+  // Add Y axis
+  var y2 = d3.scaleLinear()
+    .domain([0, maxXG])
+    .range([ height, 0]);
+
+  var tip = d3.select("#my_dataviz")
+    .append("div")
+    .style("opacity", 0)
+    .attr("class", "tooltip")
+    .style("background-color", "white")
+    .style("border", "solid")
+    .style("border-width", "1px")
+    .style("border-radius", "5px")
+    .style("padding", "10px")
+
+  var getPlayer = function(d) {
+    console.log(d.target.__data__.Name);
+    setHighlightedPlayer(d.target.__data__.Name);
+    return d.target.__data__.Name;
+  }
+
+  var mouseover = function(d) {
+    // if (d.target.__data__.Name === "Bruno Fernandes") {
+
+    // }
+    // svg.selectAll("dot").filter(function(d_other) {
+    //   console.log('hi');
+    //   console.log(d_other);
+    // })
+    // console.log(d);
+    d3.select(this).style("fill", "red");
+    tip.style("opacity", 1);
+    setHighlightedPlayer(d.target.__data__.Name);
+    return d.target.__data__.Name;
+  }
+
+
+
+  var mousemove = function(d) {
+    tip
+      .html("Player: " + d.target.__data__.Name + ";  Goals: " + d.target.__data__.Goals + ";  xG: " + d.target.__data__.xG + ";  Assists: " + d.target.__data__.Assists + ";  xA: " + d.target.__data__.xA)
+      // .style("left", (d3.mouse(this)[0]+90) + "px")
+      // .style("top", (d3.mouse(this)[1]) + "px")
+  }
+
+  // A function that change this tooltip when the leaves a point: just need to set opacity to 0 again
+  var mouseleave = function(d) {
+    d3.select(this).style("fill", "black");
+    tip
+      .transition()
+      .duration(200)
+      .style("opacity", 0)
+  }
+
+
+  svg2.append("g")
+    .call(d3.axisLeft(y2));
+
+  var dots2 = svg2.append('g')
+    .selectAll("dot")
+    .data(manUtdData)
+    .enter()
+    .append("circle")
+      .attr("cx", function (d) { return x2(d.Goals); } )
+      .attr("cy", function (d) { return y2(d.xG); } )
+      .attr("r", 4)
+      .style("fill", "black")
+    .on("mouseover", mouseover )
+    .on("mousemove", mousemove )
+    .on("mouseleave", mouseleave )
+    .filter(function(d) {
+      return d.Name === highlightedPlayer
+    }).style("fill", "red")
+
+  svg2.append('g')
+    .selectAll("dot")
+    .data(chelseaData)
+    .enter()
+    .append("path")
+      .attr("d", d3.symbol().type(d3.symbolCross))
+      .attr("transform", function(d) { return "translate(" + x2(d.Goals) + "," + y2(d.xG) + ")"; })
+      .attr("fill", "black")
+    .on("mouseover", mouseover )
+    .on("mousemove", mousemove )
+    .on("mouseleave", mouseleave )
+
+
   svg.append("g")
     .call(d3.axisLeft(y));
-  svg.append('g')
+
+  var dots = svg.append('g')
     .selectAll("dot")
-    .data(premierLeague)
+    .data(manUtdData)
     .enter()
     .append("circle")
       .attr("cx", function (d) { return x(d.Assists); } )
       .attr("cy", function (d) { return y(d.xA); } )
       .attr("r", 3)
-      .style("fill", "#69b3a2")
-  // //Read the data
-  // d3.csv("https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/2_TwoNum.csv", function(data) {
+      .style("fill", "black")
+    .on("mouseover", mouseover )
+    .on("mousemove", mousemove )
+    .on("mouseleave", mouseleave )
+    .filter(function(d) {
+      return d.Name === highlightedPlayer
+    }).style("fill", "red")
 
 
 
-  //   // Add dots
-  //   svg.append('g')
-  //     .selectAll("dot")
-  //     .data(data)
-  //     .enter()
-  //     .append("circle")
-  //       .attr("cx", function (d) { return x(d.GrLivArea); } )
-  //       .attr("cy", function (d) { return y(d.SalePrice); } )
-  //       .attr("r", 1.5)
-  //       .style("fill", "#69b3a2")
 
+  // dots.filter(function(d) {
+  //   return d.Name === highlightedPlayer
   // })
+  //   .style("fill", "red");
 
-  // select the svg area
-  // var svg = d3.select("#my_dataviz");
+  // dots2.filter(function(d) {
+  //   return d.Name === highlightedPlayer
+  // })
+  //   .style("fill", "red");
 
-  // // Handmade legend
-  // svg.append("circle").attr("cx",20).attr("cy",30).attr("r", 6).style("fill", "rgba(0,255,255)");
-  // svg.append("circle").attr("cx",20).attr("cy",60).attr("r", 6).style("fill", "rgba(0,0,0)");
-  // svg.append("circle").attr("cx",20).attr("cy",90).attr("r", 6).style("fill", "rgba(0,128,0)");
-  // svg.append("circle").attr("cx",20).attr("cy",120).attr("r", 6).style("fill", "rgba(255,0,0)");
-  // svg.append("text").attr("x", 40).attr("y", 30).text("Chelsea").style("font-size", "15px").attr("alignment-baseline","center");
-  // svg.append("text").attr("x", 40).attr("y", 60).text("Manchester City").style("font-size", "15px").attr("alignment-baseline","center");
-  // svg.append("text").attr("x", 40).attr("y", 90).text("Liverpool").style("font-size", "15px").attr("alignment-baseline","center");
-  // svg.append("text").attr("x", 40).attr("y", 120).text("Manchester United").style("font-size", "15px").attr("alignment-baseline","center");
+
+
 
   const goalsBins = pGoalsBinGenerator(premierLeague);
   const passesAttemptedBins = pPassesBinGenerator(premierLeague);
@@ -249,6 +350,8 @@ function App() {
 
 
       <div id="my_dataviz"></div>
+
+
 
       <div>
         {/*<svg id="my_dataviz" height={130} width={200}></svg>*/}
@@ -541,305 +644,10 @@ function App() {
         />
       </svg>
 
-      <h1> 2020 - 2021 English Premier League Expected Assists per Game Plot (Top 4 Teams) </h1>
 
-      <svg width={800} height={800} style={{border: "none"}}>
 
-        {chelseaData.map((player, i) => {
-          return (
-            <circle
-              key={i}
-              cy={premierLeagueXGScale(parseFloat(player.xG))}
-              cx={premierLeagueChartHeight / 6}
-              r={7}
-              style={
-                chelsea === true
-                  ? { fill: "rgba(0,255,255)", stroke: "rgba(0,255,255)" }
-                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
-              }
-            ></circle>
-          );
-        }
-        )}
-        {manCityData.map((player, i) => {
-          return (
-            <circle
-              key={i}
-              cy={premierLeagueXGScale(parseFloat(player.xG))}
-              cx={premierLeagueChartHeight / 3}
-              r={7}
-              style={
-                manCity === true
-                  ? { fill: "rgba(0,0,0)", stroke: "rgba(0,0,0)" }
-                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
-              }
-            ></circle>
-          );
-        }
-        )}
-        {liverpoolData.map((player, i) => {
-          return (
-            <circle
-              key={i}
-              cy={premierLeagueXGScale(parseFloat(player.xG))}
-              cx={premierLeagueChartHeight / 2}
-              r={7}
-              style={
-                liverpool === true
-                  ? { fill: "rgba(0,128,0)", stroke: "rgba(0,128,0)" }
-                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
-              }
-            ></circle>
-          );
-        }
-        )}
-        {manUtdData.map((player, i) => {
-          return (
-            <circle
-              key={i}
-              cy={premierLeagueXGScale(parseFloat(player.xG))}
-              cx={premierLeagueChartHeight / 1.5}
-              r={7}
-              style={
-                manUtd === true
-                  ? { fill: "rgba(255,0,0)", stroke: "rgba(255,0,0)" }
-                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
-              }
-            ></circle>
-          );
-        }
-        )}
 
-        <AxisLeft
-          strokeWidth={1}
-          right={premierLeagueChartHeight - premierLeagueMargin - premierLeagueAxisTextPadding}
-          scale={premierLeagueXGScale}
-          numTicks={10}
-        />
-        {chelseaData.map((player, i) => {
-          return (
-            <circle
-              key={i}
-              cx={premierLeagueXAScale(parseFloat(player.xA))}
-              cy={premierLeagueChartHeight / 6}
-              r={7}
-              style={
-                chelsea === true
-                  ? { fill: "rgba(0,255,255)", stroke: "rgba(0,255,255)" }
-                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
-              }
-            ></circle>
-          );
-        }
-        )}
-        {manCityData.map((player, i) => {
-          return (
-            <circle
-              key={i}
-              cx={premierLeagueXAScale(parseFloat(player.xA))}
-              cy={premierLeagueChartHeight / 3}
-              r={7}
-              style={
-                manCity === true
-                  ? { fill: "rgba(0,0,0)", stroke: "rgba(0,0,0)" }
-                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
-              }
-            ></circle>
-          );
-        }
-        )}
-        {liverpoolData.map((player, i) => {
-          return (
-            <circle
-              key={i}
-              cx={premierLeagueXAScale(parseFloat(player.xA))}
-              cy={premierLeagueChartHeight / 2}
-              r={7}
-              style={
-                liverpool === true
-                  ? { fill: "rgba(0,128,0)", stroke: "rgba(0,128,0)" }
-                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
-              }
-            ></circle>
-          );
-        }
-        )}
-        {manUtdData.map((player, i) => {
-          return (
-            <circle
-              key={i}
-              cx={premierLeagueXAScale(parseFloat(player.xA))}
-              cy={premierLeagueChartHeight / 1.5}
-              r={7}
-              style={
-                manUtd === true
-                  ? { fill: "rgba(255,0,0)", stroke: "rgba(255,0,0)" }
-                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
-              }
-            ></circle>
-          );
-        }
-        )}
 
-        <AxisBottom
-          strokeWidth={1}
-          top={premierLeagueChartHeight - premierLeagueMargin - premierLeagueAxisTextPadding}
-          scale={premierLeagueXAScale}
-          numTicks={10}
-        />
-      </svg>
-
-      <h1> 2020 - 2021 English Premier League Goals Plot (Top 4 Teams) </h1>
-
-      <svg width={premierLeagueChartWidth} height={premierLeagueChartHeight} style={{border: "none"}}>
-        {chelseaData.map((player, i) => {
-          return (
-            <circle
-              key={i}
-              cx={premierLeagueGoalsScale(parseInt(player.Goals))}
-              cy={premierLeagueChartHeight / 6}
-              r={7}
-              style={
-                chelsea === true
-                  ? { fill: "rgba(0,255,255)", stroke: "rgba(0,255,255)" }
-                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
-              }
-            ></circle>
-          );
-        }
-        )}
-        {manCityData.map((player, i) => {
-          return (
-            <circle
-              key={i}
-              cx={premierLeagueGoalsScale(parseInt(player.Goals))}
-              cy={premierLeagueChartHeight / 3}
-              r={7}
-              style={
-                manCity === true
-                  ? { fill: "rgba(0,0,0)", stroke: "rgba(0,0,0)" }
-                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
-              }
-            ></circle>
-          );
-        }
-        )}
-        {liverpoolData.map((player, i) => {
-          return (
-            <circle
-              key={i}
-              cx={premierLeagueGoalsScale(parseInt(player.Goals))}
-              cy={premierLeagueChartHeight / 2}
-              r={7}
-              style={
-                liverpool === true
-                  ? { fill: "rgba(0,128,0)", stroke: "rgba(0,128,0)" }
-                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
-              }
-            ></circle>
-          );
-        }
-        )}
-        {manUtdData.map((player, i) => {
-          return (
-            <circle
-              key={i}
-              cx={premierLeagueGoalsScale(parseInt(player.Goals))}
-              cy={premierLeagueChartHeight / 1.5}
-              r={7}
-              style={
-                manUtd === true
-                  ? { fill: "rgba(255,0,0)", stroke: "rgba(255,0,0)" }
-                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
-              }
-            ></circle>
-          );
-        }
-        )}
-
-        <AxisBottom
-          strokeWidth={1}
-          top={premierLeagueChartHeight - premierLeagueMargin - premierLeagueAxisTextPadding}
-          scale={premierLeagueGoalsScale}
-          numTicks={10}
-        />
-      </svg>
-
-      <h1> 2020 - 2021 English Premier League Expected Goals per Game Plot (Top 4 Teams) </h1>
-
-      <svg height={premierLeagueChartWidth} width={premierLeagueChartHeight} style={{border: "none"}}>
-        {chelseaData.map((player, i) => {
-          return (
-            <circle
-              key={i}
-              cy={premierLeagueXGScale(parseFloat(player.xG))}
-              cx={premierLeagueChartHeight / 6}
-              r={7}
-              style={
-                chelsea === true
-                  ? { fill: "rgba(0,255,255)", stroke: "rgba(0,255,255)" }
-                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
-              }
-            ></circle>
-          );
-        }
-        )}
-        {manCityData.map((player, i) => {
-          return (
-            <circle
-              key={i}
-              cy={premierLeagueXGScale(parseFloat(player.xG))}
-              cx={premierLeagueChartHeight / 3}
-              r={7}
-              style={
-                manCity === true
-                  ? { fill: "rgba(0,0,0)", stroke: "rgba(0,0,0)" }
-                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
-              }
-            ></circle>
-          );
-        }
-        )}
-        {liverpoolData.map((player, i) => {
-          return (
-            <circle
-              key={i}
-              cy={premierLeagueXGScale(parseFloat(player.xG))}
-              cx={premierLeagueChartHeight / 2}
-              r={7}
-              style={
-                liverpool === true
-                  ? { fill: "rgba(0,128,0)", stroke: "rgba(0,128,0)" }
-                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
-              }
-            ></circle>
-          );
-        }
-        )}
-        {manUtdData.map((player, i) => {
-          return (
-            <circle
-              key={i}
-              cy={premierLeagueXGScale(parseFloat(player.xG))}
-              cx={premierLeagueChartHeight / 1.5}
-              r={7}
-              style={
-                manUtd === true
-                  ? { fill: "rgba(255,0,0)", stroke: "rgba(255,0,0)" }
-                  : { fill: "none", stroke: "rgba(0,0,0,.0)" }
-              }
-            ></circle>
-          );
-        }
-        )}
-
-        <AxisLeft
-          strokeWidth={1}
-          right={premierLeagueChartHeight - premierLeagueMargin - premierLeagueAxisTextPadding}
-          scale={premierLeagueXGScale}
-          numTicks={10}
-        />
-      </svg>
 
       <h1> Final Project Write-Up </h1>
       <p>
