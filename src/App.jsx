@@ -388,7 +388,7 @@ function App() {
     .enter()
     .append("path")
       .attr("d", d3.symbol().type(d3.symbolCross))
-      .attr("transform", function(d) { return "translate(" + x2(d.Assists) + "," + y2(d.xA) + ")"; })
+      .attr("transform", function(d) { return "translate(" + x(d.Assists) + "," + y(d.xA) + ")"; })
       .style("fill", function(d) {
         if (d.Name === highlightedPlayer) {
           return "red";
@@ -457,6 +457,19 @@ function App() {
     <div className="App">
       <h1> 2020 - 2021 English Premier League Interactive xAssists/Assists & xGoals/Goals Comparison Plots </h1>
 
+      <p> The 2020 - 2021 Premier League (European football) season features some of the world's most technically gifted football players. Since scoring goals are the most
+      exciting and important aspects of the game, we will look at attacking statistics and comparing their assists and goalscoring threat.
+      </p>
+      <p>
+      In our plots, we will be exploring all players of the two selected teams to see how they stack up in assists, expected assists per game, goals, and expected goals per game to see
+      the distribution of a team's attacking statistics (in the form of assists and goals contribution) and to also look for positive outliers. (Below the plots is the explanation about how the xA/xG per game statistic is calculated)
+      </p>
+
+      <h3> Pick two teams and hover over each of their player's data points in the plot to highlight how
+      the player performs in either plot! A tooltip of the player will be displayed upon mouseover.
+      </h3>
+
+
 
       <div style={{"margin": 15}}>
         <text style={{"margin": 10}}>Select Team 1:</text>
@@ -472,6 +485,7 @@ function App() {
           <option value="leeds">Leeds United</option>
           <option value="everton">Everton</option>
         </select>
+        <text style={{"margin": 5}}>labeled by: •</text>
       </div>
 
       <div style={{"margin": 15}}>
@@ -488,6 +502,7 @@ function App() {
           <option value="leeds">Leeds United</option>
           <option value="everton">Everton</option>
         </select>
+        <text style={{"margin": 5}}>labeled by: +</text>
       </div>
 
       <div>
