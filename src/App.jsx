@@ -8,6 +8,12 @@ import chelseaData from "./chelsea";
 import manCityData from "./mancity";
 import liverpoolData from "./liverpool";
 import manUtdData from "./manutd";
+import leicesterData from "./leicester";
+import westHamData from "./westham";
+import tottenhamData from "./tottenham";
+import arsenalData from "./arsenal";
+import leedsData from "./leeds";
+import evertonData from "./everton";
 import * as d3 from "d3";
 import { AxisLeft, AxisBottom } from "@visx/axis";
 
@@ -16,12 +22,18 @@ function App() {
   const [manCity, setManCity] = useState(true);
   const [liverpool, setLiverpool] = useState(true);
   const [manUtd, setManUtd] = useState(true);
-  const [plot, setPlot] = useState("assists");
-  const [highlightedPlayer, setHighlightedPlayer] = useState("Edinson Cavani");
+  const [team1, setTeam1] = useState("manutd");
+  const [team2, setTeam2] = useState("chelsea");
+  const [highlightedPlayer, setHighlightedPlayer] = useState("");
 
-  const handlePlot = (event) => {
-    console.log(event);
-    setPlot(event.target.value);
+  const handleTeam1 = (event) => {
+    let teamValue = event.target.value;
+    setTeam1(teamValue);
+  }
+
+  const handleTeam2 = (event) => {
+    let teamValue = event.target.value;
+    setTeam2(teamValue);
   }
 
   const handleChelsea = () => {
@@ -125,135 +137,224 @@ function App() {
   const pGoalsBinGenerator = d3.bin().value((d) => parseInt(d.Goals))
   const pPassesBinGenerator = d3.bin().value((d) => parseInt(d.Passes_Attempted));
 
-  // 2D Scatter
-  // set the dimensions and margins of the graph
-  var margin = {top: 10, right: 30, bottom: 30, left: 60},
+  const doD3Stuff = (element) => {
+    // 2D Scatter
+    // set the dimensions and margins of the graph
+    const margin = {top: 10, right: 30, bottom: 30, left: 60},
       width = 460 - margin.left - margin.right,
       height = 400 - margin.top - margin.bottom;
 
+    // append the svg object to the body of the page
+    const svg = d3.select(element)
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform",
+              "translate(" + margin.left + "," + margin.top + ")");
 
+    const svg2 = d3.select(element)
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform",
+              "translate(" + margin.left + "," + margin.top + ")");
 
+    // Add X axis
+    const x = d3.scaleLinear()
+      .domain([0, maxAssists])
+      .range([ 0, width ]);
+    svg.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x));
 
-  // append the svg object to the body of the page
-  var svg = d3.select("#my_dataviz")
-    .append("svg")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
-    .append("g")
+    // Add Y axis
+    const y = d3.scaleLinear()
+      .domain([0, maxXA])
+      .range([ height, 0]);
+
+    // text label for the x axis
+    svg.append("text")
       .attr("transform",
-            "translate(" + margin.left + "," + margin.top + ")");
+            "translate(" + (width/2) + " ," +
+                           (height + margin.top + 20) + ")")
+      .style("text-anchor", "middle")
+      .text("Assists");
 
-  var svg2 = d3.select("#my_dataviz")
-    .append("svg")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
-    .append("g")
+    // text label for the y axis
+    svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Expected Assists per Game");
+
+    // Add X axis
+    const x2 = d3.scaleLinear()
+      .domain([0, maxGoals])
+      .range([ 0, width ]);
+    svg2.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x2));
+
+    // Add Y axis
+    const y2 = d3.scaleLinear()
+      .domain([0, maxXG])
+      .range([ height, 0]);
+
+    // text label for the x axis
+    svg2.append("text")
       .attr("transform",
-            "translate(" + margin.left + "," + margin.top + ")");
+            "translate(" + (width/2) + " ," +
+                           (height + margin.top + 20) + ")")
+      .style("text-anchor", "middle")
+      .text("Goals");
 
-  // Add X axis
-  var x = d3.scaleLinear()
-    .domain([0, maxAssists])
-    .range([ 0, width ]);
-  svg.append("g")
-    .attr("transform", "translate(0," + height + ")")
-    .call(d3.axisBottom(x));
+    // text label for the y axis
+    svg2.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Expected Goals per Game");
 
-  // Add Y axis
-  var y = d3.scaleLinear()
-    .domain([0, maxXA])
-    .range([ height, 0]);
-
-  // Add X axis
-  var x2 = d3.scaleLinear()
-    .domain([0, maxGoals])
-    .range([ 0, width ]);
-  svg2.append("g")
-    .attr("transform", "translate(0," + height + ")")
-    .call(d3.axisBottom(x2));
-
-  // Add Y axis
-  var y2 = d3.scaleLinear()
-    .domain([0, maxXG])
-    .range([ height, 0]);
-
-  var tip = d3.select("#my_dataviz")
-    .append("div")
-    .style("opacity", 0)
-    .attr("class", "tooltip")
-    .style("background-color", "white")
-    .style("border", "solid")
-    .style("border-width", "1px")
-    .style("border-radius", "5px")
-    .style("padding", "10px")
-
-  var getPlayer = function(d) {
-    console.log(d.target.__data__.Name);
-    setHighlightedPlayer(d.target.__data__.Name);
-    return d.target.__data__.Name;
-  }
-
-  var mouseover = function(d) {
-    // if (d.target.__data__.Name === "Bruno Fernandes") {
-
-    // }
-    // svg.selectAll("dot").filter(function(d_other) {
-    //   console.log('hi');
-    //   console.log(d_other);
-    // })
-    // console.log(d);
-    d3.select(this).style("fill", "red");
-    tip.style("opacity", 1);
-    setHighlightedPlayer(d.target.__data__.Name);
-    return d.target.__data__.Name;
-  }
-
-
-
-  var mousemove = function(d) {
-    tip
-      .html("Player: " + d.target.__data__.Name + ";  Goals: " + d.target.__data__.Goals + ";  xG: " + d.target.__data__.xG + ";  Assists: " + d.target.__data__.Assists + ";  xA: " + d.target.__data__.xA)
-      // .style("left", (d3.mouse(this)[0]+90) + "px")
-      // .style("top", (d3.mouse(this)[1]) + "px")
-  }
-
-  // A function that change this tooltip when the leaves a point: just need to set opacity to 0 again
-  var mouseleave = function(d) {
-    d3.select(this).style("fill", "black");
-    tip
-      .transition()
-      .duration(200)
+    const tip = d3.select(element)
+      .append("div")
       .style("opacity", 0)
+      .attr("class", "tooltip")
+      .style("background-color", "white")
+      .style("border", "solid")
+      .style("border-width", "1px")
+      .style("border-radius", "5px")
+      .style("padding", "10px")
+
+    const getPlayer = function(d) {
+      console.log(d.target.__data__.Name);
+      setHighlightedPlayer(d.target.__data__.Name);
+      return d.target.__data__.Name;
+    }
+
+    const mouseover = function(d) {
+      // if (d.target.__data__.Name === "Bruno Fernandes") {
+
+      // }
+      // svg.selectAll("dot").filter(function(d_other) {
+      //   console.log('hi');
+      //   console.log(d_other);
+      // })
+      // console.log(d);
+      d3.select(this).style("fill", "red");
+      tip.style("opacity", 1);
+      setHighlightedPlayer(d.target.__data__.Name);
+      return d.target.__data__.Name;
+    }
+
+
+
+    const mousemove = function(d) {
+      tip
+        .html("Player: " + d.target.__data__.Name + ";  Goals: " + d.target.__data__.Goals + ";  xG: " + d.target.__data__.xG + ";  Assists: " + d.target.__data__.Assists + ";  xA: " + d.target.__data__.xA)
+        // .style("left", (d3.mouse(this)[0]+90) + "px")
+        // .style("top", (d3.mouse(this)[1]) + "px")
+    }
+
+    // A function that change this tooltip when the leaves a point: just need to set opacity to 0 again
+    const mouseleave = function(d) {
+      d3.select(this).style("fill", "black");
+      tip
+        .transition()
+        .duration(200)
+        .style("opacity", 0)
   }
 
 
   svg2.append("g")
     .call(d3.axisLeft(y2));
 
-  var dots2 = svg2.append('g')
+  let team1Data = manUtdData;
+  let team2Data = chelseaData;
+
+  if (team1 === "mancity") {
+    team1Data = manCityData;
+  } else if (team1 === "manutd") {
+    team1Data = manUtdData;
+  } else if (team1 === "liverpool") {
+    team1Data = liverpoolData;
+  } else if (team1 === "chelsea") {
+    team1Data = chelseaData;
+  } else if (team1 === "leicester") {
+    team1Data = leicesterData;
+  } else if (team1 === "westham") {
+    team1Data = westHamData;
+  } else if (team1 === "tottenham") {
+    team1Data = tottenhamData;
+  } else if (team1 === "arsenal") {
+    team1Data = arsenalData;
+  } else if (team1 === "leeds") {
+    team1Data = leedsData;
+  } else if (team1 === "everton") {
+    team1Data = evertonData;
+  }
+
+  if (team2 === "mancity") {
+    team2Data = manCityData;
+  } else if (team2 === "manutd") {
+    team2Data = manUtdData;
+  } else if (team2 === "liverpool") {
+    team2Data = liverpoolData;
+  } else if (team2 === "chelsea") {
+    team2Data = chelseaData;
+  } else if (team2 === "leicester") {
+    team2Data = leicesterData;
+  } else if (team2 === "westham") {
+    team2Data = westHamData;
+  } else if (team2 === "tottenham") {
+    team2Data = tottenhamData;
+  } else if (team2 === "arsenal") {
+    team2Data = arsenalData;
+  } else if (team2 === "leeds") {
+    team2Data = leedsData;
+  } else if (team2 === "everton") {
+    team2Data = evertonData;
+  }
+
+  const dotsRight1 = svg2.append('g')
     .selectAll("dot")
-    .data(manUtdData)
+    .data(team1Data)
     .enter()
     .append("circle")
       .attr("cx", function (d) { return x2(d.Goals); } )
       .attr("cy", function (d) { return y2(d.xG); } )
       .attr("r", 4)
-      .style("fill", "black")
+      .style("fill", function(d) {
+        if (d.Name === highlightedPlayer) {
+          return "red";
+        } else {
+          return "black";
+        }
+      })
     .on("mouseover", mouseover )
     .on("mousemove", mousemove )
     .on("mouseleave", mouseleave )
-    .filter(function(d) {
-      return d.Name === highlightedPlayer
-    }).style("fill", "red")
 
-  svg2.append('g')
+
+  const dotsRight2 = svg2.append('g')
     .selectAll("dot")
-    .data(chelseaData)
+    .data(team2Data)
     .enter()
     .append("path")
       .attr("d", d3.symbol().type(d3.symbolCross))
       .attr("transform", function(d) { return "translate(" + x2(d.Goals) + "," + y2(d.xG) + ")"; })
-      .attr("fill", "black")
+      .style("fill", function(d) {
+        if (d.Name === highlightedPlayer) {
+          return "red";
+        } else {
+          return "black";
+        }
+      })
     .on("mouseover", mouseover )
     .on("mousemove", mousemove )
     .on("mouseleave", mouseleave )
@@ -262,35 +363,43 @@ function App() {
   svg.append("g")
     .call(d3.axisLeft(y));
 
-  var dots = svg.append('g')
+  const dotsLeft1 = svg.append('g')
     .selectAll("dot")
-    .data(manUtdData)
+    .data(team1Data)
     .enter()
     .append("circle")
       .attr("cx", function (d) { return x(d.Assists); } )
       .attr("cy", function (d) { return y(d.xA); } )
       .attr("r", 3)
-      .style("fill", "black")
+      .style("fill", function(d) {
+        if (d.Name === highlightedPlayer) {
+          return "red";
+        } else {
+          return "black";
+        }
+      })
+    .on("mouseover", mouseover )
+    .on("mousemove", mousemove )
+    .on("mouseleave", mouseleave );
+
+  const dotsLeft2 = svg.append('g')
+    .selectAll("dot")
+    .data(team2Data)
+    .enter()
+    .append("path")
+      .attr("d", d3.symbol().type(d3.symbolCross))
+      .attr("transform", function(d) { return "translate(" + x2(d.Assists) + "," + y2(d.xA) + ")"; })
+      .style("fill", function(d) {
+        if (d.Name === highlightedPlayer) {
+          return "red";
+        } else {
+          return "black";
+        }
+      })
     .on("mouseover", mouseover )
     .on("mousemove", mousemove )
     .on("mouseleave", mouseleave )
-    .filter(function(d) {
-      return d.Name === highlightedPlayer
-    }).style("fill", "red")
-
-
-
-
-  // dots.filter(function(d) {
-  //   return d.Name === highlightedPlayer
-  // })
-  //   .style("fill", "red");
-
-  // dots2.filter(function(d) {
-  //   return d.Name === highlightedPlayer
-  // })
-  //   .style("fill", "red");
-
+  };
 
 
 
@@ -335,7 +444,7 @@ function App() {
 
   const paragraph1 = "A question I’d like to answer is: Has the super-senior group of the US population got significantly larger over the past century? In other words, I’d like to see how many people in the year 2000 are living to ages 80 and above, in comparison to the year 1900. This will give us an indicator of healthcare improvements of the overall country and when compared to younger age groups, as well how much growth has older age groups experienced over the last century. We will need to look at growth in younger age groups to answer this question as well.";
 
-  const paragraph2 = "From the data it is evident that the population over those over 80 has significantly increased during the past century. I chose to use circles, because I intend to convey the magnitude of increase in population size for those over 80 years old. This helps the visualization and the message of “wow, that is a big increase in comparison.” The math I did was to simply divide the population of those ages 80 and over in the year 2000 by the same population age group in the year 1900. This gives us the ratio of the super senior population group and I did the same for the young adult group as I filtered for the ages from 20 - 40. To do this, we need to filter out the data for these age groups and keep track of a variable to sum up the population.";
+  const paragraph2 = "From the data it is evident that the population over those over 80 has significantly increased during the past century. I chose to use circles, because I intend to convey the magnitude of increase in population size for those over 80 years old. This helps the visualization and the message of “wow, that is a big increase in comparison.” The math I did was to simply divide the population of those ages 80 and over in the year 2000 by the same population age group in the year 1900. This gives us the ratio of the super senior population group and I did the same for the young adult group as I filtered for the ages from 20 - 40. To do this, we need to filter out the data for these age groups and keep track of a constiable to sum up the population.";
 
   const paragraph3 = "Ratio of Population Ages >= 80 in Year 2000 to Population Ages >= 80 in Year 1900: 24.4 (For every one super senior in the year 1900, there is 24.4 individuals in the year 2000).";
 
@@ -346,15 +455,80 @@ function App() {
   const paragraph6 = "The circle for the young adult population exists (which appear in a different color for clarity, we want to avoid having the same hue) because although we want to answer a question on the super-senior population, we need to consider general population growth and understand the growth rate in other age groups as well. Of course there are going to be more people in every age group in the year 2000 compared to the year 1900. But, I want my audience to observe that the old age groups have experienced massive growth over the past century. This should inform the viewer that perhaps the standard of healthcare in the US has increased to a point where it is expected for a large chunk of the population to be able to live to this age.";
   return (
     <div className="App">
-      <h1> 2020 - 2021 English Premier League Interactive Passes Attempted Plot (Top 4 Teams) </h1>
+      <h1> 2020 - 2021 English Premier League Interactive xAssists/Assists & xGoals/Goals Comparison Plots </h1>
 
 
-      <div id="my_dataviz"></div>
+      <div style={{"margin": 15}}>
+        <text style={{"margin": 10}}>Select Team 1:</text>
+        <select id="select1" onChange={handleTeam1} value={team1}>
+          <option value="mancity">Manchester City</option>
+          <option value="manutd">Manchester United</option>
+          <option value="liverpool">Liverpool</option>
+          <option value="chelsea">Chelsea</option>
+          <option value="leicester">Leicester City</option>
+          <option value="westham">West Ham</option>
+          <option value="tottenham">Tottenham</option>
+          <option value="arsenal">Arsenal</option>
+          <option value="leeds">Leeds United</option>
+          <option value="everton">Everton</option>
+        </select>
+      </div>
 
-
+      <div style={{"margin": 15}}>
+        <text style={{"margin": 10}}>Select Team 2:</text>
+        <select id="select2" onChange={handleTeam2} value={team2}>
+          <option value="mancity">Manchester City</option>
+          <option value="manutd">Manchester United</option>
+          <option value="liverpool">Liverpool</option>
+          <option value="chelsea">Chelsea</option>
+          <option value="leicester">Leicester City</option>
+          <option value="westham">West Ham</option>
+          <option value="tottenham">Tottenham</option>
+          <option value="arsenal">Arsenal</option>
+          <option value="leeds">Leeds United</option>
+          <option value="everton">Everton</option>
+        </select>
+      </div>
 
       <div>
-        {/*<svg id="my_dataviz" height={130} width={200}></svg>*/}
+        <div id="container" ref={doD3Stuff} />
+      </div>
+
+
+
+      <h1> What is xA/xG (Expected Assists/Goals)? </h1>
+
+      <p>
+        TLDR version:
+      </p>
+
+      <p>
+        xA = Expected number of assists from the player in a match.
+      </p>
+      <p>
+        xG = Expected number of goals from the player in a match.
+      </p>
+
+      <h2> ---- </h2>
+      <p>
+        Expected assists (xA) measures the likelihood that a given pass will become an assist. It considers several factors including the type of pass, pass end-point and length of pass. (via statsperform.com)
+      </p>
+
+      <p>
+        Expected goals (or xG) measures the quality of a chance by calculating the likelihood that it will be scored from a particular position on the pitch during a particular phase of play.
+        This value is based on several factors from before the shot was taken.
+        xG is measured on a scale between zero and one, where zero represents a chance that is impossible to score and one represents a chance that a player would be expected to score every single time. (via theanalyst.com)
+      </p>
+
+      <p>
+        Important: In our data, we sum a player's xA and xG values up for each game they play and take the average over the course of their season, indicating how many assists and goals they should have had based on the quality of their attacking play on average in a single game.
+      </p>
+
+      <h1> ------------ </h1>
+
+
+      <h2> 2020 - 2021 English Premier League Interactive Total Passes Attempted Plot (Top 4 Teams) </h2>
+      <div>
         <label style={{"margin-right": 15}}>
           <input
             type="checkbox"
@@ -470,7 +644,7 @@ function App() {
       buildup play from the middle of the pitch.
       </p>
 
-      <h1> 2020 - 2021 English Premier League Interactive Percentage of Passes Completed Plot (Top 4 Teams) </h1>
+      <h2> 2020 - 2021 English Premier League Interactive Percentage of Passes Completed Plot (Top 4 Teams) </h2>
 
 
 
@@ -559,16 +733,9 @@ function App() {
         percentage of passes completion numbers are lower.
       </p>
 
-      <h1> 2020 - 2021 English Premier League Assists Plot (Top 4 Teams) </h1>
+      <h2> 2020 - 2021 English Premier League Assists Plot (Top 4 Teams) </h2>
 
-      <div style={{"margin": 15}}>
-        <select id="select1" onChange={handlePlot}>
-          <option value="assists">Assists</option>
-          <option value="xA">Expected Assists per Game</option>
-          <option value="goals">Goals</option>
-          <option value="xG">Expected Goals per Game</option>
-        </select>
-      </div>
+
 
       <svg width={premierLeagueChartWidth} height={premierLeagueChartHeight} style={{border: "none"}}>
         {chelseaData.map((player, i) => {
@@ -649,7 +816,7 @@ function App() {
 
 
 
-      <h1> Final Project Write-Up </h1>
+      <h1> Assignment 3 Write-Up </h1>
       <p>
         The 2020 - 2021 Premier League (European football) season features a close battle for the top 4 positions, in which the top 4 teams is guaranteed qualification
         for the prestigious UEFA Champions League competition. To analyze a team's play, it is especially important to understand how dominant teams use possession of the ball, as they
