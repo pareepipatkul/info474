@@ -174,6 +174,8 @@ function App() {
       .domain([0, maxXA])
       .range([ height, 0]);
 
+
+
     // text label for the x axis
     svg.append("text")
       .attr("transform",
@@ -321,6 +323,24 @@ function App() {
     team2Data = evertonData;
   }
 
+  //Create Title
+  svg.append("text")
+    .attr("x", (width / 2))
+    .attr("y", 30)
+    .style("text-anchor", "middle")
+    .style("font-size", "16px")
+    .style("text-decoration", "underline")
+    .text(team1 + " vs " + team2 + "  xA/Assists");
+
+  //Create Title
+  svg2.append("text")
+    .attr("x", (width / 2))
+    .attr("y", 30)
+    .style("text-anchor", "middle")
+    .style("font-size", "16px")
+    .style("text-decoration", "underline")
+    .text(team1 + " vs " + team2 + "  xG/Goals");
+
   const dotsRight1 = svg2.append('g')
     .selectAll("dot")
     .data(team1Data)
@@ -465,8 +485,8 @@ function App() {
       the distribution of a team's attacking statistics (in the form of assists and goals contribution) and to also look for positive outliers. (Below the plots is the explanation about how the xA/xG per game statistic is calculated)
       </p>
 
-      <h3> Pick two teams and hover over each of their player's data points in the plot to highlight how
-      the player performs in either plot! A tooltip of the player will be displayed upon mouseover.
+      <h3> Pick two teams to create new graphs comparison or hover over each of their player's data points in the plot to create a comparison highlight on how
+      the player performs in either plot! A tooltip of the player will be displayed upon mouseover. New graphs will appear at the bottom after each interaction change.
       </h3>
 
 
@@ -505,9 +525,8 @@ function App() {
         <text style={{"margin": 5}}>labeled by: +</text>
       </div>
 
-      <div>
-        <div id="container" ref={doD3Stuff} />
-      </div>
+
+      <div ref={doD3Stuff}></div>
 
 
 
